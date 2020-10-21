@@ -73,6 +73,8 @@ void Can_Init()
 u8 CAN_TX_Msg(u8* Tx_BuFF,u8 len)
 {
 	u16 i=0;
+	u8 n=0;
+	u8 key=0;
 	u8  Mbox;
 	CanTxMsg CanTxMsgStructer;
 	
@@ -88,10 +90,34 @@ u8 CAN_TX_Msg(u8* Tx_BuFF,u8 len)
 	}i=0;
 	Mbox=CAN_Transmit(CAN1,&CanTxMsgStructer);
 	while((CAN_TransmitStatus(CAN1, Mbox)==CAN_TxStatus_Failed)&&(i<0XFFF))i++;//等待发送结束
-	if(i>=0XFFF)
-	return 1;
-	else
-	return 0;	//发送成功
+	if(KEY_Scan(ADVANCE_KEY_GPIOx,ADVANCE_GPIOx_KEY0_Pinx)==KEY_ON)
+	{
+	key=1;
+	}
+	else if(KEY_Scan(ADVANCE_KEY_GPIOx,ADVANCE_GPIOx_KEY1_Pinx)==KEY_ON)
+	{
+	key=2;
+	}	
+	
+	switch(key)
+	{
+	{	
+		case  1:
+		n=0;
+		break;
+	}
+	{
+		case 2 :
+		n=1;
+		break;
+	}
+	}
+	return CanTxMsgStructer.Data[n];//发送成功
+	//CAN_TransmitStatus是检查消息传输的状态函数
+	//if(i>=0XFFF)
+	//return 1;
+	//else
+	//return 0;	//发送成功,返回值为0
 	//CAN_TransmitStatus是检查消息传输的状态函数
 }
 u8 CAN_RX_Msg(u8* Rx_BuFF)
@@ -102,7 +128,7 @@ u8 CAN_RX_Msg(u8* Rx_BuFF)
     CAN_Receive(CAN1, CAN_FIFO0, &CanRxMsgStructer);//读取数据	
     for(i=0;i<8;i++)
     Rx_BuFF[i]=CanRxMsgStructer.Data[i];  
-	return CanRxMsgStructer.DLC;	
+	return CanRxMsgStructer.DLC;//返回值为数组的长度
 }
 CanRxMsg CanRxMessage;
 void USB_LP_CAN1_RX0_IRQHandler(void)
